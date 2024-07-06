@@ -9,8 +9,6 @@ public class Tile
 
     public enum CurveType { Positive, Negative, Edge }
 
-    //public Vector2Int curveOffset = new Vector2Int(20, 20);
-
     public static int tileSize = 100;
     public static int padding = 20;
 
@@ -71,7 +69,6 @@ public class Tile
     }
     void FloodFillInit()
     {
-        //int padding = mOffset.x;
         int tileSizeWithPadding = 2 * padding + tileSize;
 
         isVisited = new bool[tileSizeWithPadding, tileSizeWithPadding];
@@ -110,7 +107,6 @@ public class Tile
 
     void FloodFill()
     {
-        //int padding = mOffset.x;
         int width_height = padding * 2 + tileSize;
 
         while (visitedPixels_stack.Count > 0)
