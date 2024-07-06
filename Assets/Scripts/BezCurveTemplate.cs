@@ -26,9 +26,9 @@ public class BezCurveTemplate : MonoBehaviour
 
     
     public GameObject PointPrefab;
-    LineRenderer[] mLineRenderers = null;
+    LineRenderer[] linerenderers = null;
 
-    List<GameObject> mPointGameObjects = new List<GameObject>();
+    List<GameObject> goPoints = new List<GameObject>();
 
     public float LineWidth;
     public float LineWidthBezier;
@@ -49,46 +49,39 @@ public class BezCurveTemplate : MonoBehaviour
 
     void Start()
     {
-        mLineRenderers = new LineRenderer[2];
-        mLineRenderers[0] = CreateLine();
-        mLineRenderers[1] = CreateLine();
+        linerenderers = new LineRenderer[2];
+        linerenderers[0] = CreateLine();
+        linerenderers[1] = CreateLine();
 
-        // Set the name of these lines to distinguish.
-        mLineRenderers[0].gameObject.name = "LineRenderer_obj_0";
-        mLineRenderers[1].gameObject.name = "LineRenderer_obj_1";
+        linerenderers[0].gameObject.name = "LineRenderer_obj_0";
+        linerenderers[1].gameObject.name = "LineRenderer_obj_1";
 
-        // Now create the instances of the control points.
         for (int i = 0; i < templateControlPoints.Count; i++)
         {
             GameObject obj = Instantiate(PointPrefab, templateControlPoints[i], Quaternion.identity);
             obj.name = "ControlPoint_" + i.ToString();
-            mPointGameObjects.Add(obj);
+            goPoints.Add(obj);
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        // We will now draw the lines every frame.
-        LineRenderer lineRenderer = mLineRenderers[0];
-        LineRenderer curveRenderer = mLineRenderers[1];
+        LineRenderer lineRenderer = linerenderers[0];
+        LineRenderer curveRenderer = linerenderers[1];
 
         List<Vector2> pts = new List<Vector2>();
-        for (int i = 0; i < mPointGameObjects.Count; i++)
+        for (int i = 0; i < goPoints.Count; i++)
         {
-            pts.Add(mPointGameObjects[i].transform.position);
+            pts.Add(goPoints[i].transform.position);
         }
 
-        // set the lineRenderer for showing the straight lines between
-        // the control points.
         lineRenderer.positionCount = pts.Count;
         for (int i = 0; i < pts.Count; i++)
         {
             lineRenderer.SetPosition(i, pts[i]);
         }
 
-        // We can now see the straight lines connecting the control points.
-        // We will now proceed to draw the curve based on the bezier points.
         List<Vector2> curve = BezierCurve.PointList2(pts, 0.01f);
         curveRenderer.startColor = BezierCurveColor;
         curveRenderer.endColor = BezierCurveColor;
