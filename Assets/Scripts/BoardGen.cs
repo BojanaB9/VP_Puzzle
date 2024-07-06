@@ -280,7 +280,6 @@ public class BoardGen : MonoBehaviour
             for (int j = 0; j < numTileY; j++)
             {
                 Shuffle(mTileGameObjects[i, j]);
-                //yield return null;
             }
         }
 
@@ -298,7 +297,6 @@ public class BoardGen : MonoBehaviour
                 m.OnTilePlace += onTileinPlace;
                 SpriteRenderer renderer = m.gameObject.GetComponent<SpriteRenderer>();
                 Tile.tilesorting.BringToTop(renderer);
-                //yield return null;
             }
         }
 
