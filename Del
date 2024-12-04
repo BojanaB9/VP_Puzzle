@@ -1,0 +1,58 @@
+Релационата база е дефинирана преку следните релации:
+Lice(id, mbr, ime, prezime, data_r, vozrast, pol)
+Med_lice(id*, staz)
+Test(id*, shifra, tip, datum, rezultat, laboratorija)
+Vakcina(shifra, ime, proizvoditel)
+Vakcinacija(id_lice*, id_med_lice*, shifra_vakcina*)
+Vakcinacija_datum(id_lice*, id_med_lice*, shifra_vakcina*, datum)
+ 
+Да се напишат соодветните DDL изрази за ентитетните множества, вклучително и мултивредносни атрибути: „ТЕСТ“, „ВАКЦИНА“ и „ВАКЦИНАЦИЈА“, како и за евентуалните релации кои произлегуваат од истите, доколку треба да бидат исполнети следните барања:
+ 
+1) Полето за чување на датумот во тестовите потребно е да биде максимум од 10 карактери
+ 
+2) Во случај информацијата за производителот на вакцина недостига треба да се пополни предефинирана вредност ‘Pfizer’
+ 
+3) Датумот на вакцинација мора да биде од 2024 година
+ 
+4) Типот на тестовите може да биде ‘pcr’ или ‘seroloshki’
+ 
+5) При промена на информациите за лице од базата на податоци, промените треба да бидат проследени и до табелата за вакцинација
+ 
+ 
+CREATE TABLE Test(
+    id INT,
+    shifra INT,
+    tip TEXT,
+    datum VARCHAR(10),
+    rezultat TEXT,
+    laboratorija TEXT,
+    CONSTRAINT TEST_TYPE CHECK (tip IN ("pcr", "seroloshki"))
+    PRIMARY KEY (id,shifra),
+    FOREIGN KEY (id) REFERENCES Lice (id) ON DELETE SET DEFAULT ON UPDATE CASCADE
+);
+CREATE TABLE Vakcina(
+    shifra INT PRIMARY KEY,
+    ime TEXT,
+    proizvoditel TEXT DEFAULT "Pfizer"
+);
+CREATE TABLE Vakcinacija(
+    id_lice INT,
+    id_med_lice INT,
+    shifra_vakcina INT,
+    PRIMARY KEY (id_lice,id_med_lice,shifra_vakcina),
+    FOREIGN KEY (id_lice) REFERENCES Lice (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_med_lice) REFERENCES Med_lice (id) ON DELETE SET DEFAULT ON UPDATE CASCADE,
+    FOREIGN KEY (shifra_vakcina) REFERENCES Vakcina (shifra) ON DELETE SET DEFAULT ON UPDATE CASCADE
+);
+CREATE TABLE Vakcinacija_datum(
+    id_lice INT,
+    id_med_lice INT,
+    shifra_vakcina INT,
+    datum VARCHAR(10),
+    CONSTRAINT DATUM_VAKCINACIJA CHECK (datum>"2023-12-31"),
+    PRIMARY KEY (id_lice,id_med_lice,shifra_vakcina,datum),
+    --FOREIGN KEY (id_lice) REFERENCES Vakcinacija (id_lice) ON DELETE SET DEFAULT ON UPDATE CASCADE,
+    --FOREIGN KEY (id_med_lice) REFERENCES Vakcinacija (id_med_lice) ON DELETE SET DEFAULT ON UPDATE CASCADE,
+    --FOREIGN KEY (shifra_vakcina) REFERENCES Vakcinacija (shifra_vakcina) ON DELETE SET DEFAULT ON UPDATE CASCADE
+    FOREIGN KEY (id_lice,id_med_lice,shifra_vakcina) REFERENCES Vakcinacija (id_lice,id_med_lice,shifra_vakcina) ON DELETE SET DEFAULT ON UPDATE CASCADE
+);
