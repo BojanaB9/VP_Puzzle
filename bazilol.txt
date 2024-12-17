@@ -1,0 +1,87 @@
+1.
+SELECT ime, prezime
+FROM Vraboten JOIN Shalterski_rabotnik ON Shalterski_rabotnik.ID=Vraboten.ID JOIN Transakcija_shalter
+ON Vraboten.ID=Transakcija_shalter.ID_v JOIN Smetka on Transakcija_shalter.broj=Smetka.broj
+WHERE suma>1000 and valuta='EUR' and tip='isplata'
+ORDER BY ime,prezime
+
+
+2.
+SELECT ime, prezime
+FROM Klient JOIN  Smetka on Smetka.MBR_k=Klient.MBR_k JOIN Transakcija_bankomat on Transakcija_bankomat.broj=Smetka.broj
+WHERE suma>400 and valuta='USD'
+ORDER by ime
+
+3.
+SELECT Smetka.MBR_k, Smetka.broj, Smetka.valuta, Smetka.saldo
+FROM Smetka JOIN Transakcija_shalter on Smetka.MBR_k=Transakcija_shalter.MBR_k JOIN Transakcija_bankomat on Transakcija_bankomat.broj=Smetka.broj
+WHERE valuta='MKD' and tip='isplata' and (Transakcija_shalter.datum LIKE '2021-%-%' or Transakcija_bankomat.datum LIKE '2021-%-%')
+ORDER by Smetka.broj
+
+drug nachin (dava samo dve smetki)
+SELECT Smetka.MBR_k,Smetka.broj,valuta,saldo
+FROM Smetka JOIN Transakcija_shalter ON Smetka.broj=Transakcija_shalter.broj
+WHERE Smetka.broj IN
+(SELECT Smetka.broj
+FROM Smetka JOIN Transakcija_shalter ON Smetka.broj=Transakcija_shalter.broj
+WHERE Smetka.valuta='MKD' AND datum LIKE '2021-__-__' AND tip='isplata'
+INTERSECT
+SELECT Smetka.broj
+FROM Smetka JOIN Transakcija_bankomat ON Smetka.broj=Transakcija_bankomat.broj
+WHERE Smetka.valuta='MKD' AND datum LIKE '2021-__-__'
+ORDER BY Smetka.broj)
+
+4.
+SELECT Smetka.MBR_k,ime,prezime,adresa,Klient.datum
+FROM Klient JOIN Smetka ON Klient.MBR_k=SMetka.MBR_k JOIN Transakcija_bankomat tb on Smetka.broj=tb.broj
+WHERE valuta='EUR' and NOT EXISTS (SELECT 1 FROM Transakcija_shalter ts WHERE ts.broj=Smetka.broj and ts.MBR_k=Klient.MBR_k)
+ORDER by ime
+
+5.
+WITH BrojTransakcii AS (
+    SELECT 
+        Vraboten.ID AS ShalterID, 
+        Transakcija_shalter.datum, 
+        COUNT(*) AS broj_transakcii
+    FROM Vraboten JOIN Transakcija_shalter ON Vraboten.ID = Transakcija_shalter.ID_v
+    GROUP BY Vraboten.ID, Transakcija_shalter.datum
+),
+MaxTransakcii AS (
+    SELECT 
+        ShalterID, 
+        MAX(broj_transakcii) AS max_broj_transakcii
+    FROM BrojTransakcii
+    GROUP BY ShalterID
+)
+SELECT 
+    B.ShalterID, 
+    B.datum, 
+    B.broj_transakcii
+FROM BrojTransakcii B
+JOIN MaxTransakcii M 
+    ON B.ShalterID = M.ShalterID AND B.broj_transakcii = M.max_broj_transakcii
+ORDER BY B.ShalterID;
+
+
+6.
+SELECT S.broj, AVG(TS.suma) avg_isplata_shalter, AVG(TB.suma) avg_isplata_bankomat
+FROM Smetka S
+    LEFT JOIN Transakcija_shalter TS ON S.broj = TS.broj AND TS.datum LIKE ('2021%') AND TS.tip = 'isplata'
+    LEFT JOIN Transakcija_bankomat TB ON S.broj = TB.broj AND TB.datum LIKE ('2021%')
+WHERE S.valuta IN ('EUR', 'USD') AND NOT (TS.suma IS NULL AND TB.suma IS NULL)
+GROUP BY S.broj
+ORDER BY S.broj
+
+
+drugo reshenie ali dava poveke null i rezultati in general
+
+SELECT 
+    S.broj, 
+    AVG(CASE WHEN TS.tip = 'isplata' THEN TS.suma END) AS avg_isplata_shalter,
+    AVG(TB.suma) AS avg_isplata_bankomat
+FROM Smetka S
+    LEFT JOIN Transakcija_shalter TS ON S.broj = TS.broj AND TS.datum LIKE ('2021%')
+    LEFT JOIN Transakcija_bankomat TB ON S.broj = TB.broj AND TB.datum LIKE ('2021%')
+WHERE S.valuta IN ('EUR', 'USD')
+GROUP BY S.broj
+ORDER BY S.broj;
